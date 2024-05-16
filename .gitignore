@@ -2,3 +2,4 @@
 API/.SISBDP/
 # cache
 */__pycache__
+*/__pycache__/*
