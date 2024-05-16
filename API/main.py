@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from rotas import router as rotas
+
 
 # uvicorn main:app --reload
 app = FastAPI()
@@ -7,6 +9,6 @@ app = FastAPI()
 def home():
     return "Bem vindo a api do sistema da Barbearia do Pedro!"
 
-@app.get("/hello-world")
-def hello_world():
-    return "Hello World!"
+
+app.include_router(rotas)
+
