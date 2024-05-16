@@ -1,0 +1,2 @@
+
+from .SemDadosException import SemDadosException
