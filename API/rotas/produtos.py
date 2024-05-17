@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from fastapi import Response
 from auth import Conect
 import json
+import pandas as pd
 
 router = APIRouter()
 
@@ -11,18 +12,24 @@ router = APIRouter()
 async def get_produtos():
     dados = Conect()
     dados.conectar()
-    val, produtos = dados.get_produtos()
-    #conectar bd puxar produtos e serviços
-    if val:
-        res = produtos.to_dict('records')
-
-    else:
-        return Response(
-            "ERRO AO PEGAR DADOS", status_code=204
-        )
-
-    return Response(
-        f'"total_itens": {len(res)},"Produtos": {res}'
-    )
+    produtos, msg = dados.get_produtos()
+    return analizador(produtos, msg)
         
+
+def analizador(df:pd.DataFrame, msg:str):
+    code = msg[-3:]
+    if code == "100":
+        status_code = 200
+        body = df.to_dict('records')
+    if code == "004":
+        status_code = 204
+        body = {"ERRO":msg}
+    if code == "000":
+        status_code = 500
+        body = {"ERRO":f"EXEC - GET PRODUTOS:\nERROR: INESPERADO :(\n000"}
+    
+    
+    return Response(
+        content=body, status_code=status_code
+    )
 

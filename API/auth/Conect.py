@@ -62,18 +62,20 @@ class Conect:
             if self.__cursor.description == None:
                 raise SemDadosException()
             df = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
+            msg=f"EXEC - GET PRODUTOS: SUCCESS\n100"
             logging.info(
-                    msg=f"EXEC - GET PRODUTOS: SUCCESS"
+                    msg
                 )
             
-            return True, df
+            return df, msg
         except SemDadosException as e:
-            msg=f"EXEC - GET PRODUTOS: ERROR:\nSEM DADOS NO SERVIDOR"
+            msg=f"EXEC - GET PRODUTOS:\nERROR: SEM DADOS NO SERVIDOR\n004"
             
             logging.error(msg)
-            return False, msg
+
+            return pd.DataFrame(), msg
         except Exception as e:
-            msg=f"EXEC - GET PRODUTOS: ERROR:\n{e}"
+            msg=f"EXEC - GET PRODUTOS:\nERROR: {e}\n000"
             
             logging.error(msg)
-            return False, msg
+            return pd.DataFrame(), msg
