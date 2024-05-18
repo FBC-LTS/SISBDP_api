@@ -17,7 +17,7 @@ class Conect:
         self.__password = os.getenv("password")
         self.__database = os.getenv("database")
         self.__port = os.getenv("port")
-        self.__pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
     def conectar(self):
@@ -96,7 +96,7 @@ class Conect:
             b_senha = vd.validar_senha(senha)
             b_registro = False
             if b_email:
-                registro = self.__get_user(email)
+                registro = self.get_user(email)
                 b_registro = registro.empty
             
             b_total = b_email and b_senha and b_numero and b_registro
@@ -107,14 +107,14 @@ class Conect:
                 b_registro,
                 b_total
             ]
-            print(validade)
+
 
             return validade
     
 
     def post_usuario(self, nome:str, telefone:str, email:str, senha:str):
         def __get_senha_hash(senha):
-            return self.__pwd_context.hash(senha)
+            return self.pwd_context.hash(senha)
         
         validade = self.__valida_dados_sensiveis(numero=telefone, email=email, senha=senha)
         if not validade[-1]:
@@ -133,7 +133,7 @@ class Conect:
             print(f"Ocorreu um erro: {e}")
         return validade
 
-    def __get_user(self, email):
+    def get_user(self, email):
         comando = f"""
         SELECT * FROM usuarios WHERE email_usuario = '{email}'
         """

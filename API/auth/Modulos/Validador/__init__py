@@ -1,0 +1,3 @@
+from .validar_dado import validar_email
+from .validar_dado import validar_numero
+from .validar_dado import validar_senha

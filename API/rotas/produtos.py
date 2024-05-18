@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 from fastapi import Response
 from auth import Conect
-import json
+from auth import TokenAuth
+from fastapi import HTTPException, status
 import pandas as pd
 
 router = APIRouter()
@@ -9,7 +10,14 @@ router = APIRouter()
 
 
 @router.get("/produtos.json")
-async def get_produtos():
+async def get_produtos(token):
+    token_auth = TokenAuth(token)
+    if not token_auth.valido:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token Invalido",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     dados = Conect()
     dados.conectar()
     produtos, msg = dados.get_produtos()
