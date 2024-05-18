@@ -23,7 +23,7 @@ def analizador(df:pd.DataFrame, msg:str):
         content = df.to_dict("records")
         body = f'"total_itens":{len(content)},"records":{content}'
     if code == "004":
-        status_code = 204
+        status_code = 503
         body = f'"ERRO":{msg}'
     if code == "000":
         status_code = 500
