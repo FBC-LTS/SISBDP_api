@@ -1,14 +1,16 @@
 from fastapi import APIRouter
+from fastapi import Response
 
 router = APIRouter()
 
 @router.get("/hello-world")
 async def hello_world():
-    return "Hello World!"
+    return Response(f'Hello World!', 418)
+    
 
-@router.get("/hello-world.json")
+@router.post("/hello-world")
 async def hello_world_json(name):
     msg = "Hello World!"
     if name:
         msg += f' Wellcome {str(name).replace('"', '')}!'
-    return {"message": msg}
+    return Response(f'"message": {msg}', 418)
