@@ -83,12 +83,81 @@ class Conect:
             logging.error(msg)
             return pd.DataFrame(), msg
         
-    def post_produtos(self):
-        pass
+    def post_produtos(self, dados, tipo):
+        if tipo == "produto":
+            self.__post_produto(dados["nome"], dados["categoria"], dados["quantidade"], dados["preco"])
+        if tipo == "servico":
+            self.__post_servico(dados["nome"], dados["preco"], dados["observacao"])
+        
+    def __post_produto(self, nome:str, categoria:str, quantidade:int, preco:float):
+        
+        comando = f"""
+        INSERT INTO produtos (nome_produto, categoria_produto, quantidade_produto, preco_produto)
+        VALUES ('{nome}', '{categoria}', '{quantidade}', '{preco}');
+        """
 
-    def patch_produtos(self):
-        pass
-    
+        try:
+            self.__cursor.execute(comando)
+            self.__conexao.commit()
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+
+    def __post_servico(self, nome:str, preco:float, obs:str):
+        
+        comando = f"""
+        INSERT INTO servicos (nome_servico, preco_servico, observacao_servico)
+        VALUES ('{nome}', '{preco}', '{obs}');
+        """
+
+        try:
+            self.__cursor.execute(comando)
+            self.__conexao.commit()
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+
+    def delete_produtos(self, tipo, id):
+        comando = f"""
+        DELETE FROM {tipo + "s"} WHERE id_{tipo} = '{id}';
+        """
+        try:
+            self.__cursor.execute(comando)
+            self.__conexao.commit()
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+
+
+    def patch_produtos(self, tipo:str, dados:dict, id:int):
+        def remove_colunas_desnecessarias(colunas, tipo):
+            if tipo == 'servico':
+                if "categoria" in colunas.keys():
+                    colunas.pop("categoria")
+                if "quantidade" in colunas.keys():
+                    colunas.pop("quantidade")
+            if tipo == 'produtos':
+                if "categoria" in colunas.keys():
+                    colunas.pop("observacao")
+            return colunas
+        colunas = {}
+        for chave in dados:
+            if type(dados[chave]) == str and len(dados[chave]) > 3:
+                colunas[chave] = dados[chave]
+            if type(dados[chave]) == int and dados[chave] > 0:
+                colunas[chave] = dados[chave]
+            if type(dados[chave]) == float and dados[chave] > 0:
+                colunas[chave] = dados[chave]
+        colunas = remove_colunas_desnecessarias(colunas, tipo)
+       
+        comando = f"UPDATE {tipo + "s"}\nSET"
+        for chave in colunas:
+            comando += f" {chave+'_'+tipo} = '{colunas[chave]}'"
+        comando += f"\nWHERE id_{tipo} = '{id}';"
+        try:
+            self.__cursor.execute(comando)
+            self.__conexao.commit()
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+        
+
     def __valida_dados_sensiveis(self, numero, email, senha):
 
             b_email = vd.validar_email(email)
