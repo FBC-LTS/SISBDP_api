@@ -79,3 +79,10 @@ class Conect:
             
             logging.error(msg)
             return pd.DataFrame(), msg
+        
+
+    def post_produtos(self):
+        pass
+
+    def patch_produtos(self):
+        pass

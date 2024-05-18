@@ -33,3 +33,18 @@ def analizador(df:pd.DataFrame, msg:str):
         content=body, status_code=status_code
     )
 
+@router.post("/produtos")
+async def post_produtos():
+    dados = Conect()
+    dados.conectar()
+    return Response(
+        content="EM PRODUÇÃO", status_code=204
+    )
+
+@router.patch("/produtos")
+async def path_produtos():
+    dados = Conect()
+    dados.conectar()
+    return Response(
+        content="EM PRODUÇÃO", status_code=204
+    )
