@@ -20,13 +20,15 @@ def analizador(df:pd.DataFrame, msg:str):
     code = msg[-3:]
     if code == "100":
         status_code = 200
-        body = df.to_dict('records')
+        content = df.to_dict("records")
+        body = f'"total_itens":{len(content)},"records":{content}'
     if code == "004":
         status_code = 204
-        body = {"ERRO":msg}
+        body = f'"ERRO":{msg}'
     if code == "000":
         status_code = 500
-        body = {"ERRO":f"EXEC - GET PRODUTOS:\nERROR: INESPERADO :(\n000"}
+        msg = f"EXEC - GET PRODUTOS:\nERROR: INESPERADO :(\n000"
+        body = f'"ERRO":{msg}'
     
     
     return Response(
