@@ -8,7 +8,7 @@ import pandas as pd
 
 router = APIRouter()
 
-
+TIPOS = ["servico", "produto"]
 
 @router.get("/produtos.json")
 async def get_produtos(token):
@@ -23,6 +23,26 @@ async def get_produtos(token):
     dados.conectar()
     produtos, msg = dados.get_produtos()
     return analizador(produtos, msg)
+
+@router.get("/produto.json")
+async def get_produto(token, tipo, id):
+    token_auth = TokenAuth(token)
+    if not token_auth.valido:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token Invalido",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if tipo not in TIPOS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tipo invalido",
+        )
+    dados = Conect()
+    dados.conectar()
+    produto, msg = dados.get_produto(tipo, id)
+    return analizador(produto, msg) 
         
 
 def analizador(df:pd.DataFrame, msg:str):
@@ -84,8 +104,8 @@ async def delete_produtos(token, tipo:str, id:int):
             detail="Token Invalido",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    tipos = ["servico", "produto"]
-    if tipo not in tipos:
+    
+    if tipo not in TIPOS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Tipo invalido",
@@ -107,8 +127,8 @@ async def path_produtos(token, tipo:str, id:int, nome:str="", preco:float=-1, ca
             detail="Token Invalido",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    tipos = ["servico", "produto"]
-    if tipo not in tipos:
+    
+    if tipo not in TIPOS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Tipo invalido",

@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 from passlib.context import CryptContext
 from .Modulos.Validador import validar_dado as vd
-from .Exceptions import SemDadosException
+from .Exceptions import SemDadosException, NotFound
 
 class Conect:
     def __init__(self) -> None:
@@ -77,6 +77,35 @@ class Conect:
             logging.error(msg)
 
             return pd.DataFrame(), msg
+        except Exception as e:
+            msg=f"EXEC - GET PRODUTOS:\nERROR: {e}\n000"
+            
+            logging.error(msg)
+            return pd.DataFrame(), msg
+    
+    def get_produto(self, tipo, id):
+        try:
+            comando = f"""
+            SELECT * FROM {tipo + "s"} WHERE id_{tipo} = '{id}'
+            """
+            self.__cursor.execute(comando)
+            resultado = self.__cursor.fetchall()
+            if self.__cursor.description == None:
+                raise NotFound()
+            df = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
+            msg=f"EXEC - GET PRODUTO: SUCCESS\n100"
+            logging.info(
+                    msg
+                )
+            return df, msg
+        
+        except NotFound as e:
+            msg=f"EXEC - GET PRODUTOS:\nERROR: SEM DADOS NO SERVIDOR\n004"
+            
+            logging.error(msg)
+
+            return pd.DataFrame(), msg
+        
         except Exception as e:
             msg=f"EXEC - GET PRODUTOS:\nERROR: {e}\n000"
             
