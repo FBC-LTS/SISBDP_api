@@ -14,9 +14,10 @@ CREATE TABLE produtos
 CREATE TABLE clientes 
 (
     id_cliente bigint unsigned not null auto_increment,
-    nascimento_cliente date not null,
-    email_cliente text not null,
-    telefone_cliente text not null,
+    nome_cliente text not null,
+    email_cliente text,
+    nascimento_cliente date,
+    telefone_cliente text,
     observacao_cliente text,
     PRIMARY KEY (id_cliente)
 );
