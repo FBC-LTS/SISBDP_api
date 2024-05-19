@@ -241,3 +241,15 @@ class Conect:
             raise SemDadosException()
         df = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
         return df
+    
+
+    def get_clientes(self):
+        comando = f"SELECT * FROM clientes;"
+        self.__cursor.execute(comando)
+        resultado = self.__cursor.fetchall()
+        if self.__cursor.description == None:
+            raise SemDadosException()
+        df = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
+        
+        return df.to_dict('records')
+    
