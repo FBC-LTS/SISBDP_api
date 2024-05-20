@@ -42,7 +42,12 @@ async def get_venda(token, id:int):
             detail="ID Invalido",
         )
     
-    dados = dados.get_vendas(id)
+    dados, val = dados.get_vendas(id)
+    if not val:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="SEM ESTOQUE",
+        )
     conteudo = f'"total":{len(dados)}, "records":{dados}'
     return Response(conteudo, 200)
 

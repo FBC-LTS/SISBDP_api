@@ -309,17 +309,56 @@ class Conect:
         df['total_venda'] = df['total_venda'].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
         df['data_venda'] = df['data_venda'].apply(lambda x: re_converter_data(str(x), '%Y-%m-%d %H:%M:%S', '%d/%m/%Y %H:%M:%S') if isinstance(x, pd.Timestamp) else x)
 
-        comando = f"""SELECT * FROM itens_produtos WHERE fk_id_venda = {df['id_venda'][0]}
+        comando = f"""SELECT *, 'produto' AS tipo FROM itens_produtos WHERE fk_id_venda = {df['id_venda'][0]}
                     UNION
-                    SELECT * FROM itens_servicos WHERE fk_id_venda = {df['id_venda'][0]};"""
+                    SELECT *, 'servico' AS tipo FROM itens_servicos WHERE fk_id_venda = {df['id_venda'][0]};"""
         self.__cursor.execute(comando)
         resultado = self.__cursor.fetchall()
         if self.__cursor.description == None:
             raise SemDadosException()
         df_itens = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
-        df['itens'] = [df_itens.to_dict('records')]
+        list_itens = df_itens.to_dict('records')
+        list_itens = self.__formatar_itens(list_itens)
+        if not list_itens:
+            return [], False
+        
+        print("😂🙄")
+            
+        df['itens'] = list_itens
 
-        return df.to_dict('records')
+        return df.to_dict('records'), True
+
+    def __formatar_itens(self, list_itens):
+        itens_formatados = []
+        for item in list_itens:
+            obj_item = {}
+            obj_item['tipo'] = item['tipo'] # type: ignore
+            obj_item['quantidade_pedida'] = item[f'quantidade_produtos'] # type: ignore
+
+            obj_item['id'] = item[f'fk_id_{obj_item['tipo']}'] # type: ignore
+            comando = f"""SELECT nome_{obj_item['tipo']} AS nome, 
+                    preco_{obj_item['tipo']} AS preco """
+            comando += f"""FROM {obj_item['tipo']}s
+                        WHERE id_{obj_item['tipo']} = '{obj_item['id']}'"""
+            
+            self.__cursor.execute(comando)
+            resultado = self.__cursor.fetchall()
+            if self.__cursor.description == None:
+                raise SemDadosException()
+            df_item = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
+            q_item = df_item.to_dict('records')[0]
+
+            for key in q_item.keys():
+                if isinstance(q_item[key], Decimal):
+                    q_item[key] = float(q_item[key])
+                obj_item[key] = q_item[key]
+            
+            
+            
+            itens_formatados.append(obj_item)
+            return itens_formatados
+
+
 
     def __resolve_fk_venda(self, tabela, id):
         comando = f"""
@@ -334,6 +373,12 @@ class Conect:
 
     def post_venda(self, dados):
         #id_venda, total_venda, data_venda, desconto_venda, fk_id_cliente, fk_id_usuario
+        produtos = "produtos" in dados['carrinho'].keys()
+        servicos = "servicos" in dados['carrinho'].keys()
+
+        if produtos:
+            pass
+
         """
         carrinho = {
             "produtos": [
