@@ -1,4 +1,8 @@
 import re
+from datetime import datetime
+import logging
+from ...Modulos.Conversor import re_converter_data
+import json
 
 def gestor_codigos(codigo_erro):
     mapa = {
@@ -8,7 +12,11 @@ def gestor_codigos(codigo_erro):
         "012": "ERRO PRECO",
         "013": "ERRO CATEGORIA, NOT NULL, minimo 3 caracteres",
         "014": "ERRO QUANTIDADE, NOT NULL",
-        "015": "ERRO OBSERVAÇÃO, MAX 400 caracteres"
+        "015": "ERRO OBSERVAÇÃO, MAX 400 caracteres",
+        "016": "ERRO E-MAIL",
+        "017": "ERRO SENHA",
+        "018": "ERRO NUMERO",
+
     }
     if str(codigo_erro) in mapa.keys():
         return mapa[str(codigo_erro)]
@@ -36,15 +44,6 @@ def validar_numero(numero):
         return False
     
 def validar_produtos(tipo, nome, preco, categoria, quantidade, obs):
-    """
-    100 SUCESSO
-    010 ERRO TIPO\n
-    011 ERRO NOME\n
-    012 ERRO PRECO\n
-    013 ERRO CATEGORIA\n
-    014 ERRO QUANTIDADE\n
-    015 ERRO OBSERVAÇÃO\n
-    """
     tipos = ["produto", "servico"]
     if tipo not in tipos:
         return "010"
@@ -53,22 +52,121 @@ def validar_produtos(tipo, nome, preco, categoria, quantidade, obs):
     return validar_servico(nome, preco, obs)
 
 def validar_produto(nome, preco, categoria, quantidade):
-    if len(nome) < 3:
+    if not validar_nome(nome):
         return "011"
-    if type(preco) != float or preco < 0:
+    if not validar_preco(preco):
         return "012"
-    if len(categoria) < 2:
+    if not validar_categoria(categoria):
         return "013"
-    if type(quantidade) != int or quantidade < 0:
+    if not validar_quantidade(quantidade):
         return "014"
     return "100"
 
 def validar_servico(nome, preco, obs):
-    if len(nome) < 3:
+    if not validar_nome(nome):
         return "011"
-    if type(preco) != float or preco < 0:
+    if not validar_preco(preco):
         return "012"
-    if len(obs) > 400:
+    if not validar_obs(obs):
         return "015"
     return "100"
 
+def validar_nome(nome):
+    if len(nome) < 3:
+        return False
+    return True
+
+def validar_categoria(categoria):
+    if len(categoria) < 3:
+        return False
+    return True
+    
+def validar_quantidade(quantidade):
+    if type(quantidade) != int or quantidade < 0:
+        return False
+    return True
+
+def validar_preco(preco):
+    if type(preco) != float or preco < 0:
+        return False
+    return True
+
+def validar_obs(obs):
+    if len(obs) > 400:
+        return False
+    return True
+
+def validar_data_nasc(data_nasc):
+    try:
+        datetime.strptime(data_nasc, '%d/%m/%Y')
+        return True
+    except Exception as e:
+        return False
+
+def validar_query_cliente(validacao: dict[str, bool], query:dict[str, str]) -> tuple[list[str], bool, dict[str, str]]:
+    res = True
+    keys = []
+    for dado in validacao.items():
+        vazio = query[dado[0]] == ""
+        
+        if vazio:
+            query.pop(dado[0])
+            continue
+
+        if dado[0] == "data_nascimento":
+            query[dado[0]] = re_converter_data(query[dado[0]], '%d/%m/%Y', formato_novo="%Y-%m-%d")
+        res = res and dado[1]
+        if not dado[1]:
+            keys.append(dado[0])
+
+    return (keys, res, query)
+
+def remove_vazias(dados):
+    colunas = {}
+    for chave in dados:
+        if type(dados[chave]) == str and len(dados[chave]) > 3:
+            colunas[chave] = dados[chave]
+        if type(dados[chave]) == int and dados[chave] > 0:
+            colunas[chave] = dados[chave]
+        if type(dados[chave]) == float and dados[chave] > 0:
+            colunas[chave] = dados[chave]
+    return colunas
+
+def esta_entre(valor, menor, maior):
+    return valor > menor and valor < maior
+
+def validar_carrinho(carrinho):
+    try:
+        carrinho_json = json.loads(carrinho)
+    except Exception as e:
+        return False
+    valida = True
+    valida = valida_listas(valida, 'produtos', carrinho_json)
+    valida = valida_listas(valida, 'servicos', carrinho_json)
+
+    return valida
+
+def valida_listas(valida, chave, dicionario):
+    if not valida:
+        return False
+    if chave in dicionario.keys():
+        lista = dicionario['produtos']
+        valida = valida and e_lista(lista)
+        valida = valida and not lista_vazia(lista)
+        valida = valida and itens_tem_attr(lista, "id")
+    return valida
+
+def e_lista(valor):
+    return type(valor) == list
+
+def lista_vazia(lista):
+    return len(lista) > 0
+
+def itens_tem_attr(lista, chave):
+    valida = True
+    for item in lista:
+        valida = valida and tem_chave_no_dicionario(item, chave)
+    return valida
+
+def tem_chave_no_dicionario(item, chave):
+    return chave in item.keys()
