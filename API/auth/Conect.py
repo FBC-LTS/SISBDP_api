@@ -346,18 +346,4 @@ class Conect:
                 ]
             }
         """
-        comando = f"INSERT INTO vendas ("
-
-        for dado in dados.items():
-            comando += f' {dado[0]}_{tabela},'
-        comando = comando[:-1]
-        comando += ") VALUES ("
-
-        for dado in dados.items():
-            comando += f' \'{dado[1]}\','
-        comando = comando[:-1]
-        comando += ');'
-
-
-
-        last_id = cursor.lastrowid
+        pass
