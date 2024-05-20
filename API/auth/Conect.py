@@ -1,3 +1,4 @@
+from decimal import Decimal
 import mysql.connector
 import os
 import dotenv
@@ -5,6 +6,7 @@ import logging
 import pandas as pd
 from passlib.context import CryptContext
 from .Modulos.Validador import validar_dado as vd
+from .Modulos.Conversor import re_converter_data
 from .Exceptions import SemDadosException, NotFound
 
 class Conect:
@@ -65,6 +67,7 @@ class Conect:
             if self.__cursor.description == None:
                 raise SemDadosException()
             df = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
+            df['preco'] = df['preco'].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
             msg=f"EXEC - GET PRODUTOS: SUCCESS\n100"
             logging.info(
                     msg
@@ -86,13 +89,14 @@ class Conect:
     def get_produto(self, tipo, id):
         try:
             comando = f"""
-            SELECT * FROM {tipo + "s"} WHERE id_{tipo} = '{id}'
+            SELECT * FROM {tipo}s WHERE id_{tipo} = '{id}'
             """
             self.__cursor.execute(comando)
             resultado = self.__cursor.fetchall()
             if self.__cursor.description == None:
                 raise NotFound()
             df = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
+            df['preco'] = df['preco'].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
             msg=f"EXEC - GET PRODUTO: SUCCESS\n100"
             logging.info(
                     msg
@@ -166,14 +170,7 @@ class Conect:
                 if "categoria" in colunas.keys():
                     colunas.pop("observacao")
             return colunas
-        colunas = {}
-        for chave in dados:
-            if type(dados[chave]) == str and len(dados[chave]) > 3:
-                colunas[chave] = dados[chave]
-            if type(dados[chave]) == int and dados[chave] > 0:
-                colunas[chave] = dados[chave]
-            if type(dados[chave]) == float and dados[chave] > 0:
-                colunas[chave] = dados[chave]
+        colunas = vd.remove_vazias(dados)
         colunas = remove_colunas_desnecessarias(colunas, tipo)
        
         comando = f"UPDATE {tipo + "s"}\nSET"
@@ -185,7 +182,7 @@ class Conect:
             self.__conexao.commit()
         except Exception as e:
             print(f"Ocorreu um erro: {e}")
-        
+
 
     def __valida_dados_sensiveis(self, numero, email, senha):
 
@@ -243,13 +240,124 @@ class Conect:
         return df
     
 
-    def get_clientes(self):
-        comando = f"SELECT * FROM clientes;"
+    def get_generico(self, tabela):
+        comando = f"SELECT * FROM {tabela};"
         self.__cursor.execute(comando)
         resultado = self.__cursor.fetchall()
         if self.__cursor.description == None:
             raise SemDadosException()
         df = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
+        if f'preco_{tabela[:-1]}' in df.keys():
+            df[f'preco_{tabela[:-1]}'] = df[f'preco_{tabela[:-1]}'].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
         
         return df.to_dict('records')
     
+    def post_generico(self, tabela, dados:dict[str, str]):
+        comando = f"INSERT INTO {tabela}s ("
+
+        for dado in dados.items():
+            comando += f' {dado[0]}_{tabela},'
+        comando = comando[:-1]
+        comando += ") VALUES ("
+
+        for dado in dados.items():
+            comando += f' \'{dado[1]}\','
+        comando = comando[:-1]
+        comando += ');'
+
+
+        try:
+            self.__cursor.execute(comando)
+            self.__conexao.commit()
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+            return False
+        return True
+    
+    def patch_cliente(self, dados, id):
+        colunas = vd.remove_vazias(dados)
+        if len(colunas.keys()) < 0:
+            return 2
+
+        comando = f"UPDATE clientes\nSET"
+        for chave in colunas:
+            comando += f" {chave}_cliente = '{colunas[chave]}'"
+        comando += f"\nWHERE id_cliente = '{id}';"
+
+        try:
+            self.__cursor.execute(comando)
+            self.__conexao.commit()
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+            return False
+        return True
+    
+
+    def get_vendas(self, id=-1):
+        comando = f"SELECT * FROM vendas;"
+        if id > 0:
+            comando = f"SELECT * FROM vendas WHERE id_venda = {id};"
+        self.__cursor.execute(comando)
+        resultado = self.__cursor.fetchall()
+        if self.__cursor.description == None:
+            raise SemDadosException()
+        df = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
+        df['cliente'] = df['fk_id_cliente'].apply(lambda x: self.__resolve_fk_venda("cliente",x))
+        df['usuario'] = df['fk_id_usuario'].apply(lambda x: self.__resolve_fk_venda("usuario",x))
+        df = df.drop(columns=['fk_id_cliente', 'fk_id_usuario'])
+        df['desconto_venda'] = df['desconto_venda'].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
+        df['total_venda'] = df['total_venda'].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
+        df['data_venda'] = df['data_venda'].apply(lambda x: re_converter_data(str(x), '%Y-%m-%d %H:%M:%S', '%d/%m/%Y %H:%M:%S') if isinstance(x, pd.Timestamp) else x)
+
+        comando = f"""SELECT * FROM itens_produtos WHERE fk_id_venda = {df['id_venda'][0]}
+                    UNION
+                    SELECT * FROM itens_servicos WHERE fk_id_venda = {df['id_venda'][0]};"""
+        self.__cursor.execute(comando)
+        resultado = self.__cursor.fetchall()
+        if self.__cursor.description == None:
+            raise SemDadosException()
+        df_itens = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
+        df['itens'] = [df_itens.to_dict('records')]
+
+        return df.to_dict('records')
+
+    def __resolve_fk_venda(self, tabela, id):
+        comando = f"""
+        SELECT nome_{tabela} FROM {tabela}s WHERE id_{tabela} = '{id}'
+        """
+        self.__cursor.execute(comando)
+        resultado = self.__cursor.fetchall()
+        if self.__cursor.description == None:
+            raise SemDadosException()
+        return {"id":id, "nome":pd.DataFrame(resultado)[0][0]}
+
+
+    def post_venda(self, dados):
+        #id_venda, total_venda, data_venda, desconto_venda, fk_id_cliente, fk_id_usuario
+        """
+        carrinho = {
+            "produtos": [
+                {"id":int,"quantidade": int},
+                ...
+                ]
+            "servicos": [ 
+                {"id":int,"quantidade": int},
+                ...
+                ]
+            }
+        """
+        comando = f"INSERT INTO vendas ("
+
+        for dado in dados.items():
+            comando += f' {dado[0]}_{tabela},'
+        comando = comando[:-1]
+        comando += ") VALUES ("
+
+        for dado in dados.items():
+            comando += f' \'{dado[1]}\','
+        comando = comando[:-1]
+        comando += ');'
+
+
+
+        last_id = cursor.lastrowid
