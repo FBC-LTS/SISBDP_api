@@ -82,8 +82,11 @@ CREATE TABLE agendamentos
 
 CREATE TABLE itens_servicos
 (
+    id_item_s bigint unsigned not null auto_increment,
+    quantidade_produtos int not null,
     fk_id_servico bigint unsigned,
     fk_id_venda bigint unsigned,
+    PRIMARY KEY (id_item_s),
     FOREIGN KEY (fk_id_servico) REFERENCES servicos(id_servico),
     FOREIGN KEY (fk_id_venda) REFERENCES vendas(id_venda)
 );
@@ -103,8 +106,11 @@ CREATE TABLE vendas
 
 CREATE TABLE itens_produtos
 (
+    id_item_p bigint unsigned not null auto_increment,
+    quantidade_produtos int not null,
     fk_id_produto bigint unsigned,
     fk_id_venda bigint unsigned,
+    PRIMARY KEY (id_item_p),
     FOREIGN KEY (fk_id_produto) REFERENCES produtos(id_produto),
     FOREIGN KEY (fk_id_venda) REFERENCES vendas(id_venda)
 );
