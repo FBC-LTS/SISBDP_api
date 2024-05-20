@@ -7,7 +7,7 @@ CREATE TABLE produtos
     nome_produto text not null,
     categoria_produto text not null,
     quantidade_produto int not null,
-    preco_produto DECIMAL(10,2) not null,
+    preco_produto DECIMAL(20,2) not null,
     PRIMARY KEY (id_produto)
 );
 
@@ -36,7 +36,7 @@ CREATE TABLE servicos
  (
     id_servico bigint unsigned not null auto_increment,
     nome_servico text not null,
-    preco_servico decimal(10,2) not null,
+    preco_servico decimal(20,2) not null,
     observacao_servico text,
     PRIMARY KEY (id_servico)
 );
@@ -53,7 +53,7 @@ CREATE TABLE gastos
 (
     id_gasto bigint unsigned not null auto_increment,
     nome_gasto text not null,
-    preco_gasto decimal not null,
+    preco_gasto decimal(20,2) not null,
     descricao_gasto text,
     data_gasto datetime,
     PRIMARY KEY (id_gasto)
@@ -94,9 +94,9 @@ CREATE TABLE itens_servicos
 CREATE TABLE vendas
 (
     id_venda bigint unsigned not null auto_increment,
-    total_venda decimal not null,
+    total_venda decimal(20,2) not null,
     data_venda datetime not null,
-    desconto_venda decimal,
+    desconto_venda decimal(2,2),
     fk_id_cliente bigint unsigned,
     fk_id_usuario bigint unsigned, 
     PRIMARY KEY (id_venda),
