@@ -174,7 +174,7 @@ class Conect:
         colunas = vd.remove_vazias(dados)
         colunas = remove_colunas_desnecessarias(colunas, tipo)
        
-        comando = f"UPDATE {tipo + "s"}\nSET"
+        comando = f"UPDATE {tipo}s\nSET"
         for chave in colunas:
             comando += f" {chave+'_'+tipo} = '{colunas[chave]}'"
         comando += f"\nWHERE id_{tipo} = '{id}';"
@@ -244,7 +244,7 @@ class Conect:
         
         return df.to_dict('records')
     
-    def post_generico(self, tabela, dados:dict[str, str]):
+    def post_generico(self, tabela, dados):
         comando = f"INSERT INTO {tabela}s ("
 
         for dado in dados.items():
@@ -322,7 +322,7 @@ class Conect:
             obj_item['tipo'] = item['tipo'] # type: ignore
             obj_item['quantidade_pedida'] = item[f'quantidade_produtos'] # type: ignore
 
-            obj_item['id'] = item[f'fk_id_{obj_item['tipo']}'] # type: ignore
+            obj_item['id'] = item[f"fk_id_{obj_item['tipo']}"] # type: ignore
             comando = f"""SELECT nome_{obj_item['tipo']} AS nome, 
                     preco_{obj_item['tipo']} AS preco """
             comando += f"""FROM {obj_item['tipo']}s

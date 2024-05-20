@@ -103,7 +103,7 @@ def validar_data_nasc(data_nasc):
     except Exception as e:
         return False
 
-def validar_query_cliente(validacao: dict[str, bool], query:dict[str, str]) -> tuple[list[str], bool, dict[str, str]]:
+def validar_query_cliente(validacao, query):
     res = True
     keys = []
     for dado in validacao.items():

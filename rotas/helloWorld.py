@@ -9,8 +9,8 @@ async def hello_world():
     
 
 @router.post("/hello-world")
-async def hello_world_json(name):
+async def hello_world_json(name:str):
     msg = "Hello World!"
     if name:
-        msg += f' Wellcome {str(name).replace('"', '')}!'
+        msg += f' Wellcome {str(name)}!'
     return Response(f'"message": {msg}', 418)
