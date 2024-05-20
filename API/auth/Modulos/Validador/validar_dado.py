@@ -133,12 +133,16 @@ def remove_vazias(dados):
     return colunas
 
 def esta_entre(valor, menor, maior):
-    return valor > menor and valor < maior
+    return valor >= menor and valor <= maior
 
 def validar_carrinho(carrinho):
     try:
         carrinho_json = json.loads(carrinho)
+    except json.JSONDecodeError as e:
+        print(f"Erro ao decodificar JSON: {e}")
+        return False
     except Exception as e:
+        print(e)
         return False
     valida = True
     valida = valida_listas(valida, 'produtos', carrinho_json)
@@ -150,17 +154,21 @@ def valida_listas(valida, chave, dicionario):
     if not valida:
         return False
     if chave in dicionario.keys():
-        lista = dicionario['produtos']
+        lista = dicionario[chave]
+        print(lista)
         valida = valida and e_lista(lista)
+        print(valida)
         valida = valida and not lista_vazia(lista)
+        print(valida)
         valida = valida and itens_tem_attr(lista, "id")
+        print(valida)
     return valida
 
 def e_lista(valor):
     return type(valor) == list
 
 def lista_vazia(lista):
-    return len(lista) > 0
+    return len(lista) <= 0
 
 def itens_tem_attr(lista, chave):
     valida = True

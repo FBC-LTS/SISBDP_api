@@ -1,3 +1,5 @@
+import json
+from urllib.parse import unquote
 from fastapi import APIRouter
 from fastapi import Response
 from auth import Conect
@@ -78,8 +80,12 @@ async def post_venda(token, id_cliente:int, id_vendedor:int, carrinho:str, desco
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Desconto invalido"
         )
+    carrinho_decod = unquote(carrinho)
+
+    if carrinho_decod.startswith("'") and carrinho_decod.endswith("'"):
+        carrinho_decod = carrinho_decod[1:-1]
     
-    if not vd.validar_carrinho(carrinho):
+    if not vd.validar_carrinho(carrinho_decod):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="JSON carrinho invalido"
@@ -88,7 +94,7 @@ async def post_venda(token, id_cliente:int, id_vendedor:int, carrinho:str, desco
     query = {
         'id_cliente': id_cliente,
         'id_vendedor': id_vendedor,
-        'carrinho': carrinho,
+        'carrinho': json.loads(carrinho_decod),
         'desconto_venda': desconto_venda
     }
 
