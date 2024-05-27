@@ -59,7 +59,7 @@ class Auth(Conect):
         return token
 
     def __gerar_tokens(self, dados):
-        exp = datetime.datetime.now(datetime.UTC) + timedelta(days=DAYS_EXPIRE)
+        exp = datetime.datetime.utcnow() + datetime.timedelta(days=DAYS_EXPIRE)
         payload = {
             "usuario": self.usuario,
             "exp": exp
