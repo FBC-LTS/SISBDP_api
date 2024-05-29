@@ -444,7 +444,7 @@ class Conect:
             for servico in carrinho['servicos']:
                 total = self.__calcular_preco('servicos', total, servico['id'], servico['quantidade'])
         
-        data = datetime.datetime.now(datetime.UTC)
+        data = datetime.datetime.now(datetime.timezone.utc)
         data = data.strftime("%Y-%m-%d %H:%M:%S")
         if dados['desconto_venda']:
             total = self.__calcular_desconto(total, dados['desconto_venda'])
