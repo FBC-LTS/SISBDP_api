@@ -27,7 +27,7 @@ class TokenAuth:
     def validar(self, token):
         self.valido = False
         try:
-            payload = jwt.decode(token, SECRET_KEY, ALGORITHM) # type: ignore
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]) # type: ignore
         except jwt.DecodeError:
             return None
         
