@@ -297,10 +297,15 @@ class Conect:
         df['desconto_venda'] = df['desconto_venda'].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
         df['total_venda'] = df['total_venda'].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
         df['data_venda'] = df['data_venda'].apply(lambda x: re_converter_data(str(x), '%Y-%m-%d %H:%M:%S', '%d/%m/%Y %H:%M:%S') if isinstance(x, pd.Timestamp) else x)
+        df['itens'] = df['id_venda'].apply(self.__seleciona_itens)
 
-        comando = f"""SELECT *, 'produto' AS tipo FROM itens_produtos WHERE fk_id_venda = {df['id_venda'][0]}
+        return df.to_dict('records'), True
+
+
+    def __seleciona_itens(self, id_venda):
+        comando = f"""SELECT *, 'produto' AS tipo FROM itens_produtos WHERE fk_id_venda = {id_venda}
                     UNION
-                    SELECT *, 'servico' AS tipo FROM itens_servicos WHERE fk_id_venda = {df['id_venda'][0]};"""
+                    SELECT *, 'servico' AS tipo FROM itens_servicos WHERE fk_id_venda = {id_venda};"""
         self.__cursor.execute(comando)
         resultado = self.__cursor.fetchall()
         if self.__cursor.description == None:
@@ -308,12 +313,8 @@ class Conect:
         df_itens = pd.DataFrame(resultado, columns=[i[0] for i in self.__cursor.description])
         list_itens = df_itens.to_dict('records')
         list_itens = self.__formatar_itens(list_itens)
+        return list_itens
         
-        print("😂🙄")
-            
-        df['itens'] = list_itens
-
-        return df.to_dict('records'), True
 
     def __formatar_itens(self, list_itens):
         itens_formatados = []
