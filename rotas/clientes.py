@@ -46,7 +46,7 @@ async def post_cliente(token, nome:str, email:str="", telefone:str="", data_nasc
         "nome": vd.validar_nome(nome),
         "email": vd.validar_email(email),
         "telefone": vd.validar_numero(telefone),
-        "data_nascimento": vd.validar_data_nasc(data_nascimento),
+        "nascimento": vd.validar_data_nasc(data_nascimento),
         "observacao": vd.validar_obs(observacao),
     }
 
