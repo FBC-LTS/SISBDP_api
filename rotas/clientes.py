@@ -38,7 +38,7 @@ async def post_cliente(token, nome:str, email:str="", telefone:str="", data_nasc
         "nome": nome,
         "email": email,
         "telefone": telefone,
-        "data_nascimento": data_nascimento,
+        "nascimento": data_nascimento,
         "observacao": observacao,
     }
 
