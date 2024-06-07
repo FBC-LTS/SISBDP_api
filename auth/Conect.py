@@ -149,7 +149,7 @@ class Conect:
         except Exception as e:
             print(f"Ocorreu um erro: {e}")
 
-    def delete_produtos(self, tipo, id):
+    def delete_generico(self, tipo, id):
         comando = f"""
         DELETE FROM {tipo + "s"} WHERE id_{tipo} = '{id}';
         """

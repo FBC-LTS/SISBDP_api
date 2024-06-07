@@ -113,4 +113,23 @@ async def patch_cliente(token, nome:str="", email:str="", telefone:str="", data_
         content=conteudo,
         status_code=status_code
     )
+
+
+@router.delete("/cliente")
+async def delete_cliente(token, id):
+    token_auth = TokenAuth(token)
+    if not token_auth.valido:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token Invalido",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
+    dados = Conect()
+    dados.conectar()
+    dados.delete_generico("cliente", id)
+
+    return Response(
+        content="PRODUTO DELETADO", status_code=200)
+
+

@@ -112,7 +112,7 @@ async def delete_produtos(token, tipo:str, id:int):
         )
     dados = Conect()
     dados.conectar()
-    dados.delete_produtos(tipo, id)
+    dados.delete_generico(tipo, id)
 
     return Response(
         content="PRODUTO DELETADO", status_code=200)
