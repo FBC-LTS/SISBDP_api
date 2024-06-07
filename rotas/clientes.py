@@ -4,6 +4,7 @@ from auth import Conect
 from auth import TokenAuth
 from fastapi import HTTPException, status
 from auth.Modulos.Validador import validar_dado as vd
+from auth.Modulos.Conversor import re_converter_data
 
 router = APIRouter()
 
@@ -95,7 +96,7 @@ async def patch_cliente(token, nome:str="", email:str="", telefone:str="", data_
         "nome": nome,
         "email": email,
         "telefone": telefone,
-        "data_nascimento": data_nascimento,
+        "data_nascimento": re_converter_data(data_nascimento, "%d/%m/%Y"),
         "observacao": observacao,
     }, id=id)
     if res == 2:

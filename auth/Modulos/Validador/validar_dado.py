@@ -113,7 +113,7 @@ def validar_query_cliente(validacao, query):
             query.pop(dado[0])
             continue
 
-        if dado[0] == "data_nascimento":
+        if dado[0] == "nascimento":
             query[dado[0]] = re_converter_data(query[dado[0]], '%d/%m/%Y', formato_novo="%Y-%m-%d")
         res = res and dado[1]
         if not dado[1]:
